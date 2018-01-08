@@ -1,6 +1,6 @@
 version: 0.1
 stack:
-  name: app # Note: Update this with your stack name
+  name: serverless-cicd # Note: Update this with your stack name
   template:
     file: bootstrap.stack.yml
     # Stacks are uploaded here prior to deployment.  The bucket is created if it doesn't exist.

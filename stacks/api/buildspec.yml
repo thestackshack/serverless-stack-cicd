@@ -16,7 +16,7 @@ phases:
   post_build:
     commands:
       - npm install time
-      - aws cloudformation package --template-file api.stack.yaml --s3-bucket ${Buket} --output-template-file api.stack.output.yml
+      - aws cloudformation package --template-file api.stack.yaml --s3-bucket ${Bucket} --output-template-file api.stack.output.yml
 artifacts:
   base-directory: 'stacks/api'
   type: zip

@@ -271,7 +271,7 @@ Resources:
                 Repo: !Ref GitHubRepo
                 OAuthToken: !Ref GitHubToken
               RunOrder: 1
-        - Name: API
+        - Name: ApiPackage
           Actions:
             - Name: Package
               ActionTypeId:
@@ -285,7 +285,9 @@ Resources:
                 - Name: GitSource
               OutputArtifacts:
                 - Name: PackageOutput
-              RunOrder: 2
+              RunOrder: 1
+        - Name: ApiStack
+          Actions:
             - Name: Stack
               InputArtifacts:
                 - Name: PackageOutput
@@ -300,7 +302,7 @@ Resources:
                 Capabilities: CAPABILITY_NAMED_IAM
                 RoleArn: !GetAtt CloudFormationRole.Arn
                 StackName: !Sub "${AWS::StackName}-api-prod"
-              RunOrder: 2
+              RunOrder: 1
         - Name: UI
           Actions:
             - Name: Stack
@@ -365,7 +367,7 @@ Resources:
                 Repo: !Ref GitHubRepo
                 OAuthToken: !Ref GitHubToken
               RunOrder: 1
-        - Name: API
+        - Name: ApiPackage
           Actions:
             - Name: Package
               ActionTypeId:
@@ -379,7 +381,9 @@ Resources:
                 - Name: GitSource
               OutputArtifacts:
                 - Name: PackageOutput
-              RunOrder: 2
+              RunOrder: 1
+        - Name: ApiStack
+          Actions:
             - Name: Stack
               InputArtifacts:
                 - Name: PackageOutput
@@ -394,7 +398,7 @@ Resources:
                 Capabilities: CAPABILITY_NAMED_IAM
                 RoleArn: !GetAtt CloudFormationRole.Arn
                 StackName: !Sub "${AWS::StackName}-api-sandbox"
-              RunOrder: 2
+              RunOrder: 1
         - Name: UI
           Actions:
             - Name: Stack
