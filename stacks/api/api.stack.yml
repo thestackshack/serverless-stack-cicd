@@ -100,6 +100,13 @@ Resources:
       PathPart: !Ref Path #ex. example.com/api.
       RestApiId: !Ref RestApi
 
+  ApiGatewayResourceProxy:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !Ref ApiGatewayResource
+      PathPart: '{proxy+}'
+      RestApiId: !Ref RestApi
+
   ApiGatewayMethodOptions:
     Type: AWS::ApiGateway::Method
     Properties:
@@ -131,10 +138,10 @@ Resources:
             method.response.header.Access-Control-Allow-Origin: false
             method.response.header.Access-Control-Allow-Credentials: true
 
-  ApiGatewayMethodPost:
+  ApiGatewayMethodAny:
     Type: AWS::ApiGateway::Method
     Properties:
-      HttpMethod: POST
+      HttpMethod: ANY
       RequestParameters: {}
       ResourceId: !Ref ApiGatewayResource
       RestApiId: !Ref RestApi
@@ -152,12 +159,12 @@ Resources:
               - ':live/invocations'
       MethodResponses: []
 
-  ApiGatewayMethodGet:
+  ApiGatewayMethodProxyAny:
     Type: AWS::ApiGateway::Method
     Properties:
-      HttpMethod: GET
+      HttpMethod: ANY
       RequestParameters: {}
-      ResourceId: !Ref ApiGatewayResource
+      ResourceId: !Ref ApiGatewayResourceProxy
       RestApiId: !Ref RestApi
       AuthorizationType: NONE
       Integration:
@@ -179,8 +186,8 @@ Resources:
       RestApiId: !Ref RestApi
       StageName: !Ref Stage # Maps to the custom domain name.  BasePathMapping.Stage
     DependsOn:
-      - ApiGatewayMethodPost
-      - ApiGatewayMethodGet
+      - ApiGatewayMethodOptions
+      - ApiGatewayMethodAny
       - ApiGatewayMethodOptions
 
   #
@@ -207,7 +214,6 @@ Resources:
             - Ref: Stage
             - '/*/'
             - Ref: Path
-            - '/*'
 
   #
   # SSL Certificate needed by CloudFront.
