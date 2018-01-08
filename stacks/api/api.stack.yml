@@ -148,7 +148,7 @@ Resources:
               - Ref: AWS::Region
               - ':lambda:path/2015-03-31/functions/'
               - !GetAtt LambdaFunction.Arn
-              - '/invocations?Qualifier=live'
+              - ':live/invocations'
       MethodResponses: []
 
   ApiGatewayMethodGet:
@@ -169,7 +169,7 @@ Resources:
               - Ref: AWS::Region
               - ':lambda:path/2015-03-31/functions/'
               - !GetAtt LambdaFunction.Arn
-              - '/invocations?Qualifier=live'
+              - ':live/invocations'
       MethodResponses: []
 
   ApiGatewayDeployment:
