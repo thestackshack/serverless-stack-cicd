@@ -1,0 +1,24 @@
+version: 0.2
+phases:
+  install:
+    commands:
+  pre_build:
+    commands:
+      - echo Installing source NPM dependencies...
+      - cd ./stacks/api && npm install
+  build:
+    commands:
+      - echo Testing the code
+      - npm test
+      - echo Removing dev dependencies
+      - rm -Rf node_modules
+      - npm install --production
+  post_build:
+    commands:
+      - npm install time
+      - aws cloudformation package --template-file api.stack.yaml --s3-bucket ${Buket} --output-template-file api.stack.output.yml
+artifacts:
+  base-directory: 'stacks/api'
+  type: zip
+  files:
+    - api.stack.output.yml

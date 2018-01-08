@@ -1,0 +1,16 @@
+{
+  "name": "serverless-api",
+  "version": "1.0.0",
+  "description": "Serverless API",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "dependencies": {
+    "winston": "^2.3.1"
+  },
+  "devDependencies": {
+    "aws-sdk": "^2.110.0",
+    "mocha": "^3.5.0"
+  }
+}

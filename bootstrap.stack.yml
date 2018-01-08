@@ -1,0 +1,425 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Serverless Stack CI/CD - Boostrap
+
+Parameters:
+  GitHubOwner:
+    Description: The name of the GitHub repository owner
+    Type: String
+  GitHubToken:
+    Type: String
+    Description: GitHub repository OAuth token
+    NoEcho: true
+  GitHubRepo:
+    Type: String
+    Description: GitHub repository name
+
+Resources:
+
+  #
+  # Bucket used by the pipelines to store artifacts.
+  #
+  PipelinesBucket:
+    Description: The artifact bucket required for inter-stage data exchange
+    Type: AWS::S3::Bucket
+
+  #
+  # IAM Role needed by the pipelines
+  #
+  CodePipelineRole:
+    Description: The role CodePipeline will assume during pipeline execution
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+            Effect: Allow
+            Principal:
+              Service:
+                - codepipeline.amazonaws.com
+            Action: sts:AssumeRole
+
+  CodePipelinePolicy:
+    Description: Policy for the CodePipeline Role
+    DependsOn: CodePipelineRole
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName:
+        Fn::Join:
+          - ''
+          - - Ref: AWS::StackName
+            - '-pipeline-policy'
+      Roles:
+        - !Ref CodePipelineRole
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Action:
+              - s3:*
+            Effect: Allow
+            Resource:
+              - !GetAtt PipelinesBucket.Arn
+              - !Join ["", [!GetAtt PipelinesBucket.Arn, "*"]]
+          - Action:
+              - cloudformation:*
+            Effect: Allow
+            Resource:
+              - !Sub arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/*
+          - Action:
+              - codepipeline:*
+            Effect: Allow
+            Resource:
+              - !Sub arn:aws:codepipeline:${AWS::Region}:${AWS::AccountId}:*
+          - Action:
+              - codebuild:StartBuild
+              - codebuild:BatchGetBuilds
+              - codebuild:StopBuild
+            Effect: Allow
+            Resource:
+              - '*'
+          - Action:
+              - iam:PassRole
+            Effect: Allow
+            Resource:
+              - !GetAtt CloudFormationRole.Arn
+
+  #
+  # IAM Role needed by cloudformation
+  #
+  CloudFormationRole:
+    Description: The role cloudformation will assume during pipeline execution
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+            Effect: Allow
+            Principal:
+              Service:
+                - cloudformation.amazonaws.com
+            Action: sts:AssumeRole
+  CloudFormationPolicy:
+    Description: Policy for the cloudformation execution Role
+    DependsOn: CloudFormationRole
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName:
+        Fn::Join:
+          - ''
+          - - Ref: AWS::StackName
+            - '-cloudformation-policy'
+      Roles:
+        - !Ref CloudFormationRole
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - '*'
+            Resource:
+              - '*'
+
+  #
+  # IAM role needed by our CodeBuild
+  #
+  CodeBuildRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - sts:AssumeRole
+            Principal:
+              Service:
+                - codebuild.amazonaws.com
+  CodeBuildPolicy:
+    Type: AWS::IAM::Policy
+    Description: Policy for the codebuild execution
+    DependsOn: CodeBuildRole
+    Properties:
+      PolicyName:
+        Fn::Join:
+          - ''
+          - - Ref: AWS::StackName
+            - '-codebuild-policy'
+      Roles:
+        - !Ref CodeBuildRole
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - '*'
+            Resource:
+              - '*'
+
+  #
+  # Code Build project.
+  # - Package the Lambda Functions
+  #
+  APICodeBuildProd:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/nodejs:6.3.1
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+          - Name: Bucket
+            Value: !Ref PipelinesBucket
+      Name: 'api-code-build-prod'
+      ServiceRole: !GetAtt CodeBuildRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: stacks/api/buildspec.yml
+      TimeoutInMinutes: 5 # must be between 5 minutes and 8 hours
+  APICodeBuildSandbox:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/nodejs:6.3.1
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+          - Name: Bucket
+            Value: !Ref PipelinesBucket
+      Name: 'api-code-build-sandbox'
+      ServiceRole: !GetAtt CodeBuildRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: stacks/api/buildspec.yml
+      TimeoutInMinutes: 5 # must be between 5 minutes and 8 hours
+
+  #
+  # Code Build project.
+  # - Deploy the UI
+  #
+  UICodeBuildProd:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/nodejs:6.3.1
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+          - Name: StackName
+            Value: !Sub "${AWS::StackName}-ui-prod"
+      Name: 'ui-code-build-prod'
+      ServiceRole: !GetAtt CodeBuildRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: stacks/ui/buildspec.yml
+      TimeoutInMinutes: 5 # must be between 5 minutes and 8 hours
+  UICodeBuildSandbox:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/nodejs:6.3.1
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+          - Name: StackName
+            Value: !Sub "${AWS::StackName}-ui-sandbox"
+      Name: 'ui-code-build-sandbox'
+      ServiceRole: !GetAtt CodeBuildRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: stacks/ui/buildspec.yml
+      TimeoutInMinutes: 5 # must be between 5 minutes and 8 hours
+
+  #
+  # Pipelines that create/update the cloudformation stacks within the project
+  # Prod environment.
+  #
+  PipelineProd:
+    Description: Serverless Stack - Prod Pipeline
+    Type: AWS::CodePipeline::Pipeline
+    DependsOn:
+      - CodePipelinePolicy
+      - CloudFormationPolicy
+      - APICodeBuildProd
+      - UICodeBuildProd
+    Properties:
+      RestartExecutionOnUpdate: True
+      RoleArn: !GetAtt CodePipelineRole.Arn
+      ArtifactStore:
+        Type: S3
+        Location: !Ref PipelinesBucket
+      Stages:
+        - Name: Source
+          Actions:
+            - Name: CloneRepository
+              ActionTypeId:
+                Category: Source
+                Owner: ThirdParty
+                Version: 1
+                Provider: GitHub
+              OutputArtifacts:
+                - Name: GitSource
+              Configuration:
+                Owner: !Ref GitHubOwner
+                Branch: 'master'
+                Repo: !Ref GitHubRepo
+                OAuthToken: !Ref GitHubToken
+              RunOrder: 1
+        - Name: API
+          Actions:
+            - Name: Package
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref APICodeBuildProd
+              InputArtifacts:
+                - Name: GitSource
+              OutputArtifacts:
+                - Name: PackageOutput
+              RunOrder: 2
+            - Name: Stack
+              InputArtifacts:
+                - Name: PackageOutput
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Version: 1
+                Provider: CloudFormation
+              Configuration:
+                TemplatePath: "PackageOutput::api.stack.output.yml"
+                ActionMode: CREATE_UPDATE
+                Capabilities: CAPABILITY_NAMED_IAM
+                RoleArn: !GetAtt CloudFormationRole.Arn
+                StackName: !Sub "${AWS::StackName}-api-prod"
+              RunOrder: 2
+        - Name: UI
+          Actions:
+            - Name: Stack
+              InputArtifacts:
+                - Name: GitSource
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Version: 1
+                Provider: CloudFormation
+              Configuration:
+                TemplatePath: "GitSource::stacks/ui/ui.stack.yml"
+                ActionMode: CREATE_UPDATE
+                Capabilities: CAPABILITY_NAMED_IAM
+                RoleArn: !GetAtt CloudFormationRole.Arn
+                StackName: !Sub "${AWS::StackName}-ui-prod"
+              RunOrder: 1
+            - Name: Deploy
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref UICodeBuildProd
+              InputArtifacts:
+                - Name: GitSource
+              RunOrder: 2
+
+  #
+  # Pipelines that create/update the cloudformation stacks within the project
+  # Sandbox environment.
+  #
+  PipelineSandbox:
+    Description: Serverless Stack - Sandbox Pipeline
+    Type: AWS::CodePipeline::Pipeline
+    DependsOn:
+      - CodePipelinePolicy
+      - CloudFormationPolicy
+      - APICodeBuildSandbox
+      - UICodeBuildSandbox
+    Properties:
+      RestartExecutionOnUpdate: True
+      RoleArn: !GetAtt CodePipelineRole.Arn
+      ArtifactStore:
+        Type: S3
+        Location: !Ref PipelinesBucket
+      Stages:
+        - Name: Source
+          Actions:
+            - Name: CloneRepository
+              ActionTypeId:
+                Category: Source
+                Owner: ThirdParty
+                Version: 1
+                Provider: GitHub
+              OutputArtifacts:
+                - Name: GitSource
+              Configuration:
+                Owner: !Ref GitHubOwner
+                Branch: 'develop'
+                Repo: !Ref GitHubRepo
+                OAuthToken: !Ref GitHubToken
+              RunOrder: 1
+        - Name: API
+          Actions:
+            - Name: Package
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref APICodeBuildProd
+              InputArtifacts:
+                - Name: GitSource
+              OutputArtifacts:
+                - Name: PackageOutput
+              RunOrder: 2
+            - Name: Stack
+              InputArtifacts:
+                - Name: PackageOutput
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Version: 1
+                Provider: CloudFormation
+              Configuration:
+                TemplatePath: "PackageOutput::api.stack.output.yml"
+                ActionMode: CREATE_UPDATE
+                Capabilities: CAPABILITY_NAMED_IAM
+                RoleArn: !GetAtt CloudFormationRole.Arn
+                StackName: !Sub "${AWS::StackName}-api-sandbox"
+              RunOrder: 2
+        - Name: UI
+          Actions:
+            - Name: Stack
+              InputArtifacts:
+                - Name: GitSource
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Version: 1
+                Provider: CloudFormation
+              Configuration:
+                TemplatePath: "GitSource::stacks/ui/ui.stack.yml"
+                ActionMode: CREATE_UPDATE
+                Capabilities: CAPABILITY_NAMED_IAM
+                RoleArn: !GetAtt CloudFormationRole.Arn
+                StackName: !Sub "${AWS::StackName}-ui-sandbox"
+              RunOrder: 1
+            - Name: Deploy
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref UICodeBuildProd
+              InputArtifacts:
+                - Name: GitSource
+              RunOrder: 2

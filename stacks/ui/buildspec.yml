@@ -1,0 +1,12 @@
+version: 0.1
+phases:
+  install:
+    commands:
+  pre_build:
+    commands:
+  build:
+    commands:
+      - aws s3 sync ui/www "s3://$(aws cloudformation describe-stacks --stack-name ${StackName} --query "Stacks[0].Outputs[0].OutputValue")" --acl bucket-owner-full-control --acl public-read --delete --cache-control "max-age=1" --exclude ui/www/assets
+      - aws s3 sync ui/www/assets "s3://$(aws cloudformation describe-stacks --stack-name ${StackName} --query "Stacks[0].Outputs[0].OutputValue")/assets" --acl bucket-owner-full-control --acl public-read --delete --cache-control "max-age=31536000"
+  post_build:
+    commands:
