@@ -288,7 +288,7 @@ Resources:
               RunOrder: 1
         - Name: ApiStack
           Actions:
-            - Name: Stack
+            - Name: CreateChangeSet
               InputArtifacts:
                 - Name: PackageOutput
               ActionTypeId:
@@ -298,11 +298,27 @@ Resources:
                 Provider: CloudFormation
               Configuration:
                 TemplatePath: "PackageOutput::api.stack.output.yml"
-                ActionMode: CREATE_UPDATE
+                ActionMode: CHANGE_SET_REPLACE
                 Capabilities: CAPABILITY_NAMED_IAM
                 RoleArn: !GetAtt CloudFormationRole.Arn
                 StackName: !Sub "${AWS::StackName}-api-prod"
+                ChangeSetName: !Sub "${AWS::StackName}-api-prod-cs"
               RunOrder: 1
+            - Name: ExecuteChangeSet
+              InputArtifacts:
+                - Name: PackageOutput
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Version: 1
+                Provider: CloudFormation
+              Configuration:
+                ActionMode: CHANGE_SET_EXECUTE
+                Capabilities: CAPABILITY_NAMED_IAM
+                RoleArn: !GetAtt CloudFormationRole.Arn
+                StackName: !Sub "${AWS::StackName}-api-prod"
+                ChangeSetName: !Sub "${AWS::StackName}-api-prod-cs"
+              RunOrder: 2
         - Name: UI
           Actions:
             - Name: Stack

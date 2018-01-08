@@ -182,8 +182,8 @@ Resources:
 # Outputs to be used by other CloudFormation templates if needed.
 #
 Outputs:
-  S3Bucket:
+  WebsiteBucket:
     Description: S3 Bucket
-    Value: !Ref S3Bucket
+    Value: !Ref WebsiteBucket
     Export:
-      Name: !Sub '${AWS::StackName}-S3Bucket'
+      Name: !Sub '${AWS::StackName}-WebsiteBucket'
