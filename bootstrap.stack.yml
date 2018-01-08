@@ -2,6 +2,13 @@ AWSTemplateFormatVersion: 2010-09-09
 Description: Serverless Stack CI/CD - Boostrap
 
 Parameters:
+  TLD:
+    Type: String
+    Description: TLD name needed by Route53 to perform DNS (example.com)
+  Domain:
+    Type: String
+    Description: Domain name for your website (example.com)
+
   GitHubOwner:
     Description: The name of the GitHub repository owner
     Type: String
@@ -335,6 +342,11 @@ Resources:
                 Capabilities: CAPABILITY_NAMED_IAM
                 RoleArn: !GetAtt CloudFormationRole.Arn
                 StackName: !Sub "${AWS::StackName}-ui-prod"
+                ParameterOverrides: !Sub |
+                  {
+                    "Domain": "${Domain}",
+                    "TLD" : "${TLD}"
+                  }
               RunOrder: 1
             - Name: Deploy
               ActionTypeId:
@@ -400,7 +412,7 @@ Resources:
               RunOrder: 1
         - Name: ApiStack
           Actions:
-            - Name: Stack
+            - Name: CreateChangeSet
               InputArtifacts:
                 - Name: PackageOutput
               ActionTypeId:
@@ -410,11 +422,27 @@ Resources:
                 Provider: CloudFormation
               Configuration:
                 TemplatePath: "PackageOutput::api.stack.output.yml"
-                ActionMode: CREATE_UPDATE
+                ActionMode: CHANGE_SET_REPLACE
                 Capabilities: CAPABILITY_NAMED_IAM
                 RoleArn: !GetAtt CloudFormationRole.Arn
                 StackName: !Sub "${AWS::StackName}-api-sandbox"
+                ChangeSetName: !Sub "${AWS::StackName}-api-sandbox-cs"
               RunOrder: 1
+            - Name: ExecuteChangeSet
+              InputArtifacts:
+                - Name: PackageOutput
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Version: 1
+                Provider: CloudFormation
+              Configuration:
+                ActionMode: CHANGE_SET_EXECUTE
+                Capabilities: CAPABILITY_NAMED_IAM
+                RoleArn: !GetAtt CloudFormationRole.Arn
+                StackName: !Sub "${AWS::StackName}-sandbox-prod"
+                ChangeSetName: !Sub "${AWS::StackName}-api-sandbox-cs"
+              RunOrder: 2
         - Name: UI
           Actions:
             - Name: Stack
@@ -431,6 +459,11 @@ Resources:
                 Capabilities: CAPABILITY_NAMED_IAM
                 RoleArn: !GetAtt CloudFormationRole.Arn
                 StackName: !Sub "${AWS::StackName}-ui-sandbox"
+                ParameterOverrides: !Sub |
+                  {
+                    "Domain": "${Domain}",
+                    "TLD" : "${TLD}"
+                  }
               RunOrder: 1
             - Name: Deploy
               ActionTypeId:

@@ -4,9 +4,9 @@ AWSTemplateFormatVersion: '2010-09-09'
 # CloudFormation input parameters
 #
 Parameters:
-  TLD:
-    Type: String
-    Description: TLD name needed by Route53 to perform DNS (example.com)
+#  TLD:
+#    Type: String
+#    Description: TLD name needed by Route53 to perform DNS (example.com)
   Domain:
     Type: String
     Description: Domain name for your website (example.com)
@@ -49,13 +49,13 @@ Resources:
   #
   # SSL Certificate needed by CloudFront.
   #
-  SSL:
-    Type: AWS::CertificateManager::Certificate
-    Properties:
-      DomainName: !Ref Domain
-      DomainValidationOptions:
-        - DomainName: !Ref Domain
-          ValidationDomain: !Ref TLD
+#  SSL:
+#    Type: AWS::CertificateManager::Certificate
+#    Properties:
+#      DomainName: !Ref Domain
+#      DomainValidationOptions:
+#        - DomainName: !Ref Domain
+#          ValidationDomain: !Ref TLD
 
   #
   # CloudFront CDN
@@ -131,9 +131,12 @@ Resources:
           GeoRestriction:
             RestrictionType: 'none'
         ViewerCertificate:
-          SslSupportMethod: 'sni-only'
-          MinimumProtocolVersion: 'TLSv1'
-          AcmCertificateArn: !Ref SSL
+          CloudFrontDefaultCertificate: 'true'
+          MinimumProtocolVersion: 'SSLv3'
+#        ViewerCertificate:
+#          SslSupportMethod: 'sni-only'
+#          MinimumProtocolVersion: 'TLSv1'
+#          AcmCertificateArn: !Ref SSL
 
   #
   # Route53 DNS record set to map our domain to our CDN

@@ -11,6 +11,8 @@ stack:
   # Define stack input parameters.
   #
   parameters:
+    Domain: 'test-test-test.com'
+    TLD: 'test-test-test.com'
     GitHubOwner: 'thestackshack'
     GitHubRepo: 'serverless-stack-cicd'
     GitHubToken: '${kms.decrypt(AQICAHgiu9XuQb4FZRXrLn/77g1P99ZhS7/g3xOsvbvNpb+/qQH+sxP+if0SN0/QR0I3M9ehAAAAhzCBhAYJKoZIhvcNAQcGoHcwdQIBADBwBgkqhkiG9w0BBwEwHgYJYIZIAWUDBAEuMBEEDNTJCu1YrFM64MUL4AIBEIBD8zDL0Oc+8rQwr/7fJq+NyPB7vKJ/lNqqcmBBN9QS8XDFAqB9Vh9fkCUSilXs3HG3NL6EdLYaR9Z5blo7p2/HTmJrnw==)}'
