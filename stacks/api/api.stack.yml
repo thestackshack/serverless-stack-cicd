@@ -207,6 +207,7 @@ Resources:
             - Ref: Stage
             - '/*/'
             - Ref: Path
+            - '/*'
 
   #
   # SSL Certificate needed by CloudFront.
