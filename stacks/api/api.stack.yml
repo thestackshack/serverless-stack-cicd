@@ -155,8 +155,8 @@ Resources:
             - - 'arn:aws:apigateway:'
               - Ref: AWS::Region
               - ':lambda:path/2015-03-31/functions/'
-              - !GetAtt LambdaFunction.Arn
-              - ':live/invocations'
+              - !Ref LambdaFunction.Alias
+              - '/invocations'
       MethodResponses: []
 
   ApiGatewayMethodProxyAny:
@@ -176,8 +176,8 @@ Resources:
             - - 'arn:aws:apigateway:'
               - Ref: AWS::Region
               - ':lambda:path/2015-03-31/functions/'
-              - !GetAtt LambdaFunction.Arn
-              - ':live/invocations'
+              - !Ref LambdaFunction.Alias
+              - '/invocations'
       MethodResponses: []
 
   ApiGatewayDeployment:
@@ -199,7 +199,7 @@ Resources:
       - LambdaFunction
     Properties:
       Action: lambda:invokeFunction
-      FunctionName: !GetAtt LambdaFunction.Alias
+      FunctionName: !Ref LambdaFunction.Alias
       Principal: apigateway.amazonaws.com
 #      SourceArn:  #arn:aws:execute-api:region:account-id:api-id/stage-name/HTTP-VERB/resource-path
 #        Fn::Join:
