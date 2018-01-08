@@ -188,9 +188,11 @@ Resources:
   #
   PermissionForAPIGatewayToInvokeLambda:
     Type: AWS::Lambda::Permission
+    DependsOn:
+      - LambdaFunction
     Properties:
       Action: lambda:invokeFunction
-      FunctionName: !Ref LambdaFunction
+      FunctionName: !Sub '${LambdaFunction.Arn}:live'
       Principal: apigateway.amazonaws.com
 
   #
