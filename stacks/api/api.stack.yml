@@ -1,5 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
+Description: Serverless Stack CI/CD - API
 
 Parameters:
   TLD:
@@ -90,7 +91,7 @@ Resources:
   RestApi:
     Type: AWS::ApiGateway::RestApi
     Properties:
-      Name: ApiGatewayRestApi
+      Name: !Ref AWS::StackName
 
   ApiGatewayResource:
     Type: AWS::ApiGateway::Resource

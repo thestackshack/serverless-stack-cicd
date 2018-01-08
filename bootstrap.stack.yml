@@ -469,7 +469,7 @@ Resources:
                 StackName: !Sub "${AWS::StackName}-ui-sandbox"
                 ParameterOverrides: !Sub |
                   {
-                    "Domain": "${Domain}",
+                    "Domain": "dev.${Domain}",
                     "TLD" : "${TLD}"
                   }
               RunOrder: 1
