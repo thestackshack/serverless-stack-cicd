@@ -192,7 +192,6 @@ Resources:
       Action: lambda:invokeFunction
       FunctionName: !Ref LambdaFunction
       Principal: apigateway.amazonaws.com
-      SourceAccount: Ref: AWS::AccountId
 
   #
   # SSL Certificate needed by CloudFront.
