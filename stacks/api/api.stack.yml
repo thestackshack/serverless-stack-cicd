@@ -199,7 +199,7 @@ Resources:
       - LambdaFunction
     Properties:
       Action: lambda:invokeFunction
-      FunctionName: !Sub '${LambdaFunction.Arn}:live'
+      FunctionName: !GetAtt LambdaFunction.Alias
       Principal: apigateway.amazonaws.com
 #      SourceArn:  #arn:aws:execute-api:region:account-id:api-id/stage-name/HTTP-VERB/resource-path
 #        Fn::Join:
