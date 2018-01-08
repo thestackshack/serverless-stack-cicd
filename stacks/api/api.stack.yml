@@ -80,6 +80,9 @@ Resources:
           - Arn
       CodeUri: ./
       Runtime: nodejs6.10
+      AutoPublishAlias: live
+      DeploymentPreference:
+        Type: Canary10Percent5Minutes
 
   #
   # Create the API Gateway
@@ -145,7 +148,7 @@ Resources:
               - Ref: AWS::Region
               - ':lambda:path/2015-03-31/functions/'
               - !GetAtt LambdaFunction.Arn
-              - '/invocations'
+              - '/invocations?Qualifier=live'
       MethodResponses: []
 
   ApiGatewayMethodGet:
@@ -166,7 +169,7 @@ Resources:
               - Ref: AWS::Region
               - ':lambda:path/2015-03-31/functions/'
               - !GetAtt LambdaFunction.Arn
-              - '/invocations'
+              - '/invocations?Qualifier=live'
       MethodResponses: []
 
   ApiGatewayDeployment:
