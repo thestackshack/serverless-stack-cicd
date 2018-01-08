@@ -201,7 +201,11 @@ Resources:
             - Ref: AWS::AccountId
             - ':'
             - Ref: RestApi
-            - '/*/*'
+            - '/'
+            - Ref: Stage
+            - '/*/' # Method GET, POST, OPTIONS
+            - Ref: Path
+            - '/*'
 
   #
   # SSL Certificate needed by CloudFront.
