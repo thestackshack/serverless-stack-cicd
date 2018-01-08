@@ -310,6 +310,10 @@ Resources:
                 RoleArn: !GetAtt CloudFormationRole.Arn
                 StackName: !Sub "${AWS::StackName}-api-prod"
                 ChangeSetName: !Sub "${AWS::StackName}-api-prod-cs"
+                ParameterOverrides: |
+                  {
+                    "Stage": "prod"
+                  }
               RunOrder: 1
             - Name: ExecuteChangeSet
               InputArtifacts:
@@ -427,6 +431,10 @@ Resources:
                 RoleArn: !GetAtt CloudFormationRole.Arn
                 StackName: !Sub "${AWS::StackName}-api-sandbox"
                 ChangeSetName: !Sub "${AWS::StackName}-api-sandbox-cs"
+                ParameterOverrides: |
+                  {
+                    "Stage": "sandbox"
+                  }
               RunOrder: 1
             - Name: ExecuteChangeSet
               InputArtifacts:
