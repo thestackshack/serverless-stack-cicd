@@ -111,7 +111,7 @@ Resources:
     Type: AWS::ApiGateway::Method
     Properties:
       AuthorizationType: NONE
-      ResourceId: !Ref ApiGatewayResource
+      ResourceId: !Ref ApiGatewayResourceProxy
       RestApiId: !Ref RestApi
       HttpMethod: OPTIONS
       Integration:
@@ -188,7 +188,7 @@ Resources:
     DependsOn:
       - ApiGatewayMethodOptions
       - ApiGatewayMethodAny
-      - ApiGatewayMethodOptions
+      - ApiGatewayMethodProxyAny
 
   #
   # We need to give API Gateway permission to invoke our Lambda function.
@@ -201,16 +201,16 @@ Resources:
       Action: lambda:invokeFunction
       FunctionName: !Sub '${LambdaFunction.Arn}:live'
       Principal: apigateway.amazonaws.com
-      SourceArn:  #arn:aws:execute-api:region:account-id:api-id/stage-name/HTTP-VERB/resource-path
-        Fn::Join:
-          - ''
-          - - 'arn:aws:execute-api:'
-            - Ref: AWS::Region
-            - ':'
-            - Ref: AWS::AccountId
-            - ':'
-            - Ref: RestApi
-            - '/*/*'
+#      SourceArn:  #arn:aws:execute-api:region:account-id:api-id/stage-name/HTTP-VERB/resource-path
+#        Fn::Join:
+#          - ''
+#          - - 'arn:aws:execute-api:'
+#            - Ref: AWS::Region
+#            - ':'
+#            - Ref: AWS::AccountId
+#            - ':'
+#            - Ref: RestApi
+#            - '/*/*'
 
   #
   # SSL Certificate needed by CloudFront.
