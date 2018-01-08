@@ -203,8 +203,6 @@ Resources:
             - Ref: RestApi
             - '/'
             - Ref: Stage
-            - '/*/' # Method GET, POST, OPTIONS
-            - Ref: Path
             - '/*'
 
   #
