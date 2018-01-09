@@ -68,6 +68,55 @@ Resources:
       - Ref: IamRoleLambdaExecution
 
   #
+  # Lambda Deployment - API Gateway alarms
+  #
+  5xxAlarm:
+    Type: AWS::CloudWatch::Alarm
+    DependsOn: RestApi
+    Properties:
+      AlarmDescription: 5xx alarm for api gateway
+      Namespace: 'AWS/ApiGateway'
+      MetricName: 5XXError
+      Dimensions:
+        - Name: ApiName
+          Value: !Ref RestApi
+      Statistic: Sum
+      Period: '60'
+      EvaluationPeriods: '3'
+      Threshold: '10'
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+  4xxAlarm:
+    Type: AWS::CloudWatch::Alarm
+    DependsOn: RestApi
+    Properties:
+      AlarmDescription: 4xx alarm for api gateway
+      Namespace: 'AWS/ApiGateway'
+      MetricName: 4XXError
+      Dimensions:
+        - Name: ApiName
+          Value: !Ref RestApi
+      Statistic: Sum
+      Period: '60'
+      EvaluationPeriods: '3'
+      Threshold: '10'
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+  LatencyAlarm:
+    Type: AWS::CloudWatch::Alarm
+    DependsOn: RestApi
+    Properties:
+      AlarmDescription: latency alarm for api gateway
+      Namespace: 'AWS/ApiGateway'
+      MetricName: Latency
+      Dimensions:
+        - Name: ApiName
+          Value: !Ref RestApi
+      Statistic: Average
+      Period: '60'
+      EvaluationPeriods: '3'
+      Threshold: '25000'
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+
+  #
   # Our Lambda function.  Basic code has been added.  You will replace the code later via your Github repo.
   #
   LambdaFunction:
@@ -84,6 +133,10 @@ Resources:
       AutoPublishAlias: live
       DeploymentPreference:
         Type: Canary10Percent5Minutes
+        Alarms:
+          - !Ref 5xxAlarm
+          - !Ref 4xxAlarm
+          - !Ref LatencyAlarm
 
   #
   # Create the API Gateway
