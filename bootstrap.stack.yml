@@ -399,9 +399,12 @@ Resources:
                 RoleArn: !GetAtt CloudFormationRole.Arn
                 StackName: !Sub "${AWS::StackName}-api-prod"
                 ChangeSetName: !Sub "${AWS::StackName}-api-prod-cs"
-                ParameterOverrides: |
+                ParameterOverrides: !Sub |
                   {
-                    "Stage": "prod"
+                    "Stage": "prod",
+                    "TasksStack": "${AWS::StackName}-tasks-prod",
+                    "Domain": "api.${Domain}",
+                    "TLD" : "${TLD}"
                   }
               RunOrder: 1
             - Name: ExecuteChangeSet
@@ -419,39 +422,39 @@ Resources:
                 StackName: !Sub "${AWS::StackName}-api-prod"
                 ChangeSetName: !Sub "${AWS::StackName}-api-prod-cs"
               RunOrder: 2
-#        - Name: UI
-#          Actions:
-#            - Name: Stack
-#              InputArtifacts:
-#                - Name: GitSource
-#              ActionTypeId:
-#                Category: Deploy
-#                Owner: AWS
-#                Version: 1
-#                Provider: CloudFormation
-#              Configuration:
-#                TemplatePath: "GitSource::stacks/ui/ui.stack.yml"
-#                ActionMode: CREATE_UPDATE
-#                Capabilities: CAPABILITY_NAMED_IAM
-#                RoleArn: !GetAtt CloudFormationRole.Arn
-#                StackName: !Sub "${AWS::StackName}-ui-prod"
-#                ParameterOverrides: !Sub |
-#                  {
-#                    "Domain": "${Domain}",
-#                    "TLD" : "${TLD}"
-#                  }
-#              RunOrder: 1
-#            - Name: Deploy
-#              ActionTypeId:
-#                Category: Build
-#                Owner: AWS
-#                Provider: CodeBuild
-#                Version: 1
-#              Configuration:
-#                ProjectName: !Ref UICodeBuildProd
-#              InputArtifacts:
-#                - Name: GitSource
-#              RunOrder: 2
+        - Name: UI
+          Actions:
+            - Name: Stack
+              InputArtifacts:
+                - Name: GitSource
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Version: 1
+                Provider: CloudFormation
+              Configuration:
+                TemplatePath: "GitSource::stacks/ui/ui.stack.yml"
+                ActionMode: CREATE_UPDATE
+                Capabilities: CAPABILITY_NAMED_IAM
+                RoleArn: !GetAtt CloudFormationRole.Arn
+                StackName: !Sub "${AWS::StackName}-ui-prod"
+                ParameterOverrides: !Sub |
+                  {
+                    "Domain": "${Domain}",
+                    "TLD" : "${TLD}"
+                  }
+              RunOrder: 1
+            - Name: Deploy
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref UICodeBuildProd
+              InputArtifacts:
+                - Name: GitSource
+              RunOrder: 2
 
   #
   # Pipelines that create/update the cloudformation stacks within the project
@@ -568,9 +571,12 @@ Resources:
                 RoleArn: !GetAtt CloudFormationRole.Arn
                 StackName: !Sub "${AWS::StackName}-api-sandbox"
                 ChangeSetName: !Sub "${AWS::StackName}-api-sandbox-cs"
-                ParameterOverrides: |
+                ParameterOverrides: !Sub |
                   {
-                    "Stage": "sandbox"
+                    "Stage": "sandbox",
+                    "TasksStack": "${AWS::StackName}-tasks-sandbox",
+                    "Domain": "dev.api.${Domain}",
+                    "TLD" : "${TLD}"
                   }
               RunOrder: 1
             - Name: ExecuteChangeSet
@@ -588,36 +594,36 @@ Resources:
                 StackName: !Sub "${AWS::StackName}-api-sandbox"
                 ChangeSetName: !Sub "${AWS::StackName}-api-sandbox-cs"
               RunOrder: 2
-#        - Name: UI
-#          Actions:
-#            - Name: Stack
-#              InputArtifacts:
-#                - Name: GitSource
-#              ActionTypeId:
-#                Category: Deploy
-#                Owner: AWS
-#                Version: 1
-#                Provider: CloudFormation
-#              Configuration:
-#                TemplatePath: "GitSource::stacks/ui/ui.stack.yml"
-#                ActionMode: CREATE_UPDATE
-#                Capabilities: CAPABILITY_NAMED_IAM
-#                RoleArn: !GetAtt CloudFormationRole.Arn
-#                StackName: !Sub "${AWS::StackName}-ui-sandbox"
-#                ParameterOverrides: !Sub |
-#                  {
-#                    "Domain": "dev.${Domain}",
-#                    "TLD" : "${TLD}"
-#                  }
-#              RunOrder: 1
-#            - Name: Deploy
-#              ActionTypeId:
-#                Category: Build
-#                Owner: AWS
-#                Provider: CodeBuild
-#                Version: 1
-#              Configuration:
-#                ProjectName: !Ref UICodeBuildSandbox
-#              InputArtifacts:
-#                - Name: GitSource
-#              RunOrder: 2
+        - Name: UI
+          Actions:
+            - Name: Stack
+              InputArtifacts:
+                - Name: GitSource
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Version: 1
+                Provider: CloudFormation
+              Configuration:
+                TemplatePath: "GitSource::stacks/ui/ui.stack.yml"
+                ActionMode: CREATE_UPDATE
+                Capabilities: CAPABILITY_NAMED_IAM
+                RoleArn: !GetAtt CloudFormationRole.Arn
+                StackName: !Sub "${AWS::StackName}-ui-sandbox"
+                ParameterOverrides: !Sub |
+                  {
+                    "Domain": "dev.${Domain}",
+                    "TLD" : "${TLD}"
+                  }
+              RunOrder: 1
+            - Name: Deploy
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref UICodeBuildSandbox
+              InputArtifacts:
+                - Name: GitSource
+              RunOrder: 2
