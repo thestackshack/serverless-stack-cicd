@@ -20,6 +20,10 @@ Parameters:
     Description: The deployment stage used by API Gateway
     Default: 'api'
 
+  TasksStack:
+    Type: String
+    Description: Tasks stack name
+
 Conditions:
   UseCustomDomain: !And
     - !Not [!Equals [!Ref TLD, '']]
@@ -137,6 +141,11 @@ Resources:
           - !Ref 5xxAlarm
           - !Ref 4xxAlarm
           - !Ref LatencyAlarm
+      Environment:
+        Variables:
+          TasksSnsTopic:
+            Fn::ImportValue:
+              !Sub "${TasksStack}-SNSTopic"
 
   #
   # Create the API Gateway

@@ -1,0 +1,23 @@
+version: 0.2
+phases:
+  install:
+    commands:
+  pre_build:
+    commands:
+      - echo Installing source NPM dependencies...
+      - cd ./stacks/tasks && npm install
+  build:
+    commands:
+      - echo Testing the code
+      - npm test
+      - echo Removing dev dependencies
+      - rm -Rf node_modules
+      - npm install --production
+  post_build:
+    commands:
+      - aws cloudformation package --template-file tasks.stack.yml --s3-bucket ${Bucket} --output-template-file tasks.stack.output.yml
+artifacts:
+  base-directory: 'stacks/tasks'
+  type: zip
+  files:
+    - tasks.stack.output.yml
