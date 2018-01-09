@@ -37,7 +37,23 @@ The Lambda function uses blue/green canary deployments.  5xx, 4xx, and latency a
 ## Encrypt Secrets
 In order to protect your configuration secrets like your GitHub token we need to create a KMS key first.
 
-You can use the CloudFormation script in [kms](kms/README.md) or just create it via the console.
+- Install https://github.com/ddffx/kms-cli and setup your AWS environment vars.
+- Encrypt each string as outlined below.
+- Add the encrypted strings to the [_cim.yml](_cim.yml).  The format is `${kms.decrypt(<encreted string>)}`
+
+
+### How to Encrypt
+Create a file called `encrypt.json`
+```
+{
+  "keyId" : "<your kms key id>",
+  "plainText": "<your client id>",
+  "awsRegion": "<aws region>",
+  "awsProfile": "<aws profile"
+}
+```
+Use this command to perform the encryption : `kms-cli encrypt --file encrypt.json`
+
 
 ## Stack Up
 Create the boostrap stack manually.  Once this is complete the pipelines will be created and then create the other stacks.
